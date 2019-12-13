@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/sliceking/galleria/views"
@@ -19,6 +20,16 @@ type Users struct {
 	NewView *views.View
 }
 
+// New is used to render a form for new users to sign up
+//
+// GET /signup
 func (u *Users) New(w http.ResponseWriter, r *http.Request) {
 	u.NewView.Render(w, nil)
+}
+
+//Create is used to make a new user account
+//
+// POST /signup
+func (u *Users) Create(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "This is a temporary response")
 }
