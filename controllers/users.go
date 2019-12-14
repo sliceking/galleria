@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/gorilla/schema"
 	"github.com/sliceking/galleria/views"
 )
 
@@ -27,6 +28,11 @@ func (u *Users) New(w http.ResponseWriter, r *http.Request) {
 	u.NewView.Render(w, nil)
 }
 
+type SignupForm struct {
+	Email    string `schema:"email"`
+	Password string `schema:"password"`
+}
+
 //Create is used to make a new user account
 //
 // POST /signup
@@ -35,6 +41,12 @@ func (u *Users) Create(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Bad Request")
 	}
 
-	fmt.Fprintln(w, r.PostForm["email"])
-	fmt.Fprintln(w, r.PostForm["password"])
+	dec := schema.NewDecoder()
+	var form SignupForm
+
+	if err := dec.Decode(&form, r.PostForm); err != nil {
+		panic(err)
+	}
+
+	fmt.Fprintln(w, form)
 }
