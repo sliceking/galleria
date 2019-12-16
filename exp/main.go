@@ -1,9 +1,7 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"os"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
@@ -23,6 +21,13 @@ type User struct {
 	Color string
 }
 
+type Order struct {
+	gorm.Model
+	UserID      uint
+	Amount      int
+	Description string
+}
+
 func main() {
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s dbname=%s sslmode=disable",
 		host, port, user, dbname,
@@ -38,26 +43,27 @@ func main() {
 		panic(err)
 	}
 	db.LogMode(true)
-	db.AutoMigrate(&User{})
+	db.AutoMigrate(&User{}, &Order{})
 	// db.DropTableIfExists(&User{})
 
-	name, email, color := getInfo()
-	u := &User{
-		Name:  name,
-		Email: email,
-		Color: color,
+	var u User
+	if err := db.First(&u).Error; err != nil {
+		panic(err)
 	}
-	db.Create(&u)
-	fmt.Println(u)
+
+	createOrder(db, u, 1001, "Fake Desc1")
+	createOrder(db, u, 54545, "Fake Desc2")
+	createOrder(db, u, 235543453, "Fake Desc3")
+	createOrder(db, u, 8877, "Fake Desc4")
 }
 
-func getInfo() (name, email, color string) {
-	reader := bufio.NewReader(os.Stdin)
-	fmt.Println("What is your name?")
-	name, _ = reader.ReadString('\n')
-	fmt.Println("What is your email?")
-	email, _ = reader.ReadString('\n')
-	fmt.Println("What is your color?")
-	color, _ = reader.ReadString('\n')
-	return name, email, color
+func createOrder(db *gorm.DB, user User, amount int, desc string) {
+	err := db.Create(&Order{
+		UserID:      user.ID,
+		Amount:      amount,
+		Description: desc,
+	}).Error
+	if err != nil {
+		panic(err)
+	}
 }
