@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 
-	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
+	"github.com/sliceking/galleria/models"
 )
 
 const (
@@ -14,25 +14,26 @@ const (
 	dbname = "galleria_dev"
 )
 
-type User struct {
-	gorm.Model
-	Name  string
-	Email string `gorm:"not null;unique_index"`
-	Color string
-}
-
 func main() {
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s dbname=%s sslmode=disable",
 		host, port, user, dbname,
 	)
 
-	db, err := gorm.Open("postgres", psqlInfo)
+	us, err := models.NewUserService(psqlInfo)
 	if err != nil {
 		panic(err)
 	}
-	defer db.Close()
 
+<<<<<<< HEAD
 	db.LogMode(true)
 	db.AutoMigrate(&User{})
+=======
+	defer us.Close()
+	user, err := us.ByID(2)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(user)
+>>>>>>> b77f364dfa117d6c17d39e1785fa63ed6cfbbf32
 
 }
