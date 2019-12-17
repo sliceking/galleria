@@ -24,16 +24,11 @@ func main() {
 		panic(err)
 	}
 
-<<<<<<< HEAD
-	db.LogMode(true)
-	db.AutoMigrate(&User{})
-=======
 	defer us.Close()
 	user, err := us.ByID(2)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Println(user)
->>>>>>> b77f364dfa117d6c17d39e1785fa63ed6cfbbf32
 
 }
