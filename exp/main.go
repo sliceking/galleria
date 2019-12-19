@@ -24,7 +24,7 @@ func main() {
 		panic(err)
 	}
 	defer us.Close()
-	us.DestructiveReset()
+	us.AutoMigrate()
 
 	u := models.User{
 		Name:  "superasdfs man",
