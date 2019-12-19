@@ -13,10 +13,14 @@ var (
 	ErrNotFound = errors.New("models: resource not found")
 	// ErrInvalidID is return when an invalid ID is passed to a method like delete
 	ErrInvalidID = errors.New("models: ID was invalid")
+	// ErrInvalidPassword is returned when an invalid password is used to auth
+	ErrInvalidPassword = errors.New("models: incorrect password provided")
 )
 
 const userPwPepper = "IamAsuperSecretString"
 
+// NewUserService is used at the start of the application to open a connection
+// to the database
 func NewUserService(connectionInfo string) (*UserService, error) {
 	db, err := gorm.Open("postgres", connectionInfo)
 	if err != nil {
@@ -75,6 +79,29 @@ func (us *UserService) ByEmail(email string) (*User, error) {
 	db := us.db.Where("email = ?", email)
 	err := first(db, &user)
 	return &user, err
+}
+
+// Authenticate can be used to authenticate a user with the provided
+// email and password.
+func (us *UserService) Authenticate(email, password string) (*User, error) {
+	foundUser, err := us.ByEmail(email)
+	if err != nil {
+		return nil, err
+	}
+
+	err = bcrypt.CompareHashAndPassword(
+		[]byte(foundUser.PasswordHash), []byte(password+userPwPepper),
+	)
+	if err != nil {
+		switch err {
+		case bcrypt.ErrMismatchedHashAndPassword:
+			return nil, ErrInvalidPassword
+		default:
+			return nil, err
+		}
+	}
+
+	return foundUser, nil
 }
 
 // first will query using the provided gorm.db and fetch the first record
