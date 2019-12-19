@@ -15,6 +15,8 @@ var (
 	ErrInvalidID = errors.New("models: ID was invalid")
 )
 
+const userPwPepper = "IamAsuperSecretString"
+
 func NewUserService(connectionInfo string) (*UserService, error) {
 	db, err := gorm.Open("postgres", connectionInfo)
 	if err != nil {
@@ -34,7 +36,8 @@ type UserService struct {
 // Create will create a user in the database and fill the ID, CreatedAt,
 // UpdatedAt and DeletedAt fields
 func (us *UserService) Create(user *User) error {
-	hashedBytes, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	pwBytes := []byte(user.Password + userPwPepper)
+	hashedBytes, err := bcrypt.GenerateFromPassword(pwBytes, bcrypt.DefaultCost)
 	if err != nil {
 		return err
 	}
@@ -49,6 +52,7 @@ func (us *UserService) Update(user *User) error {
 	return us.db.Save(user).Error
 }
 
+// Delete will soft delete a user in the database
 func (us *UserService) Delete(id uint) error {
 	if id == 0 {
 		return ErrInvalidID
