@@ -86,12 +86,17 @@ func (u *Users) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	signIn(w, user)
+	http.Redirect(w, r, "/cookietest", http.StatusFound)
+	// fmt.Fprintln(w, user)
+}
+
+func signIn(w http.ResponseWriter, user *models.User) {
 	cookie := http.Cookie{
 		Name:  "email",
 		Value: user.Email,
 	}
 	http.SetCookie(w, &cookie)
-	fmt.Fprintln(w, user)
 }
 
 // CookieTest is used to display cookies set on the current user
