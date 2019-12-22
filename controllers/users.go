@@ -55,7 +55,9 @@ func (u *Users) Create(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	fmt.Fprintln(w, user)
+
+	signIn(w, &user)
+	http.Redirect(w, r, "/cookietest", http.StatusFound)
 }
 
 type LoginForm struct {
@@ -88,7 +90,6 @@ func (u *Users) Login(w http.ResponseWriter, r *http.Request) {
 
 	signIn(w, user)
 	http.Redirect(w, r, "/cookietest", http.StatusFound)
-	// fmt.Fprintln(w, user)
 }
 
 func signIn(w http.ResponseWriter, user *models.User) {
