@@ -133,10 +133,6 @@ type userValidator struct {
 // Create will create a user in the database and fill the ID, CreatedAt,
 // UpdatedAt and DeletedAt fields
 func (uv *userValidator) Create(user *User) error {
-	if err := runUserValFuncs(user, uv.bcryptPassword); err != nil {
-		return err
-	}
-
 	if user.Remember == "" {
 		token, err := rand.RememberToken()
 		if err != nil {
@@ -144,14 +140,19 @@ func (uv *userValidator) Create(user *User) error {
 		}
 		user.Remember = token
 	}
-	user.RememberHash = uv.hmac.Hash(user.Remember)
+
+	err := runUserValFuncs(user, uv.bcryptPassword, uv.hmacRemember)
+	if err != nil {
+		return err
+	}
 
 	return uv.UserDB.Create(user)
 }
 
 // Update will has a remember token if it is provided.
 func (uv *userValidator) Update(user *User) error {
-	if err := runUserValFuncs(user, uv.bcryptPassword); err != nil {
+	err := runUserValFuncs(user, uv.bcryptPassword, uv.hmacRemember)
+	if err != nil {
 		return err
 	}
 
@@ -174,8 +175,15 @@ func (uv *userValidator) Delete(id uint) error {
 // ByRemember will has the remember token and then call the ByRemember on the
 // UserDB layer
 func (uv *userValidator) ByRemember(token string) (*User, error) {
-	rememberHash := uv.hmac.Hash(token)
-	return uv.UserDB.ByRemember(rememberHash)
+	user := User{
+		Remember: token,
+	}
+
+	if err := runUserValFuncs(&user, uv.hmacRemember); err != nil {
+		return nil, err
+	}
+
+	return uv.UserDB.ByRemember(user.RememberHash)
 }
 
 // bcryptPassword will hash a users password with a predefined pepper
@@ -193,6 +201,16 @@ func (uv *userValidator) bcryptPassword(user *User) error {
 	user.PasswordHash = string(hashedBytes)
 	// zero the password out for safety
 	user.Password = ""
+	return nil
+}
+
+func (uv *userValidator) hmacRemember(user *User) error {
+	if user.Remember == "" {
+		return nil
+	}
+
+	user.RememberHash = uv.hmac.Hash(user.Remember)
+
 	return nil
 }
 
