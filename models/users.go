@@ -139,6 +139,7 @@ func (uv *userValidator) Create(user *User) error {
 		uv.setRememberIfUnset,
 		uv.hmacRemember,
 		uv.normalizeEmail,
+		uv.requireEmail,
 	)
 
 	if err != nil {
@@ -154,6 +155,7 @@ func (uv *userValidator) Update(user *User) error {
 		uv.bcryptPassword,
 		uv.hmacRemember,
 		uv.normalizeEmail,
+		uv.requireEmail,
 	)
 
 	if err != nil {
@@ -270,6 +272,14 @@ var _ UserDB = &userGorm{}
 
 type userGorm struct {
 	db *gorm.DB
+}
+
+func (uv *userValidator) requireEmail(user *User) error {
+	if user.Email == "" {
+		return errors.New("An Email Address is required.")
+	}
+
+	return nil
 }
 
 // NewUserGorm accepts a postgres connection string and returns a new instance
