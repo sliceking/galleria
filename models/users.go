@@ -2,6 +2,7 @@ package models
 
 import (
 	"errors"
+	"regexp"
 	"strings"
 
 	"github.com/jinzhu/gorm"
@@ -18,10 +19,20 @@ var (
 	ErrInvalidID = errors.New("models: ID was invalid")
 	// ErrInvalidPassword is returned when an invalid password is used to auth
 	ErrInvalidPassword = errors.New("models: incorrect password provided")
+	// ErrEmailRequired is returned when an email address is not provided
+	ErrEmailRequired = errors.New("models: Email Address is required")
+	// ErrEmailInvalid is returned when an email address does not match our
+	// requirements
+	ErrEmailInvalid = errors.New("models: Email address is not valid")
 )
 
 const userPwPepper = "IamAsuperSecretString"
 const hmacSecretKey = "secret-hmac-key"
+
+var (
+	emailRegex = regexp.MustCompile(`^[a-z0-9._%+\-]+@` +
+		`[a-z0-9.\]+\.[a-z]{2,16}$`)
+)
 
 // User represents a user in our application
 type User struct {
@@ -128,7 +139,16 @@ var _ UserDB = &userValidator{}
 
 type userValidator struct {
 	UserDB
-	hmac hash.HMAC
+	hmac       hash.HMAC
+	emailRegex *regexp.Regexp
+}
+
+func newUserValidator(udb UserDB, hmac hash.HMAC) *userValidator {
+	return &userValidator{
+		UserDB:     udb,
+		hmac:       hmac,
+		emailRegex: regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\]+\.[a-z]{2,16}$`),
+	}
 }
 
 // Create will create a user in the database and fill the ID, CreatedAt,
@@ -140,6 +160,7 @@ func (uv *userValidator) Create(user *User) error {
 		uv.hmacRemember,
 		uv.normalizeEmail,
 		uv.requireEmail,
+		uv.emailFormat,
 	)
 
 	if err != nil {
@@ -156,6 +177,7 @@ func (uv *userValidator) Update(user *User) error {
 		uv.hmacRemember,
 		uv.normalizeEmail,
 		uv.requireEmail,
+		uv.emailFormat,
 	)
 
 	if err != nil {
@@ -276,7 +298,15 @@ type userGorm struct {
 
 func (uv *userValidator) requireEmail(user *User) error {
 	if user.Email == "" {
-		return errors.New("An Email Address is required.")
+		return ErrEmailRequired
+	}
+
+	return nil
+}
+
+func (uv *userValidator) emailFormat(user *User) error {
+	if !uv.emailRegex.MatchString(user.Email) {
+		return ErrEmailInvalid
 	}
 
 	return nil
