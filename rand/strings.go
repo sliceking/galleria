@@ -1,8 +1,9 @@
 package rand
 
-import "crypto/rand"
-
-import "encoding/base64"
+import (
+	"crypto/rand"
+	"encoding/base64"
+)
 
 const RememberTokenBytes = 32
 
@@ -16,6 +17,16 @@ func Bytes(n int) ([]byte, error) {
 	}
 
 	return b, nil
+}
+
+// NBytes returns the number of bytes used in the base64encoded string
+func NBytes(base64string string) (int, error) {
+	b, err := base64.URLEncoding.DecodeString(base64string)
+	if err != nil {
+		return -1, err
+	}
+
+	return len(b), nil
 }
 
 // String will generate a byte slice of nbytes and return a string that is the
