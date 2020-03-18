@@ -30,7 +30,15 @@ type Users struct {
 //
 // GET /signup
 func (u *Users) New(w http.ResponseWriter, r *http.Request) {
-	u.NewView.Render(w, nil)
+	type Alert struct {
+		Level   string
+		Message string
+	}
+	a := Alert{
+		Level:   "warning",
+		Message: "Whoa!",
+	}
+	u.NewView.Render(w, a)
 }
 
 type SignupForm struct {
