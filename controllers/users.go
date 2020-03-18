@@ -34,11 +34,19 @@ func (u *Users) New(w http.ResponseWriter, r *http.Request) {
 		Level   string
 		Message string
 	}
+	type Data struct {
+		Alert Alert
+		Yield interface{}
+	}
 	a := Alert{
 		Level:   "warning",
 		Message: "Whoa!",
 	}
-	u.NewView.Render(w, a)
+	d := Data{
+		Alert: a,
+		Yield: "hello!",
+	}
+	u.NewView.Render(w, d)
 }
 
 type SignupForm struct {
