@@ -30,21 +30,11 @@ type Users struct {
 //
 // GET /signup
 func (u *Users) New(w http.ResponseWriter, r *http.Request) {
-	type Alert struct {
-		Level   string
-		Message string
-	}
-	type Data struct {
-		Alert Alert
-		Yield interface{}
-	}
-	a := Alert{
-		Level:   "warning",
-		Message: "Whoa!",
-	}
-	d := Data{
-		Alert: a,
-		Yield: "hello!",
+	d := views.Data{
+		Alert: &views.Alert{
+			Level:   views.AlertLvlError,
+			Message: "yay",
+		},
 	}
 	u.NewView.Render(w, d)
 }
