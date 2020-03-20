@@ -1,7 +1,6 @@
 package models
 
 import (
-	"errors"
 	"regexp"
 	"strings"
 
@@ -12,40 +11,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-var (
-	// ErrNotFound is returned when a resource cannot be found in the database
-	ErrNotFound = errors.New("models: resource not found")
-	// ErrIDInvalid is return when an invalid ID is passed to a method like delete
-	ErrIDInvalid = errors.New("models: ID was invalid")
-	// ErrPasswordIncorrect is returned when an invalid password is used to auth
-	ErrPasswordIncorrect = errors.New("models: incorrect password provided")
-	// ErrEmailRequired is returned when an email address is not provided
-	ErrEmailRequired = errors.New("models: Email Address is required")
-	// ErrEmailInvalid is returned when an email address does not match our
-	// requirements
-	ErrEmailInvalid = errors.New("models: Email address is not valid")
-	// ErrEmailTaken is returned when an email address has already been taken
-	// by another user
-	ErrEmailTaken = errors.New("models: email address is already taken")
-	// ErrPasswordTooShort is returned when a password is trying to be created
-	// or updated with less than 8 characters in length
-	ErrPasswordTooShort = errors.New("models: password must be at least 8 characters")
-	// ErrPasswordRequired is return when no password is provided
-	ErrPasswordRequired = errors.New("models: a password is required")
-	// ErrRememberTooShort is returned if a remember hash is too short
-	ErrRememberTooShort = errors.New("models: remember token must be at least 32 bytes")
-	// ErrRememberRequired is return if a create or update is attempted without
-	// a user remember token hash
-	ErrRememberRequired = errors.New("models: remember token is required")
-)
-
 const userPwPepper = "IamAsuperSecretString"
 const hmacSecretKey = "secret-hmac-key"
-
-var (
-	emailRegex = regexp.MustCompile(`^[a-z0-9._%+\-]+@` +
-		`[a-z0-9.\]+\.[a-z]{2,16}$`)
-)
 
 // User represents a user in our application
 type User struct {
@@ -157,7 +124,7 @@ func newUserValidator(udb UserDB, hmac hash.HMAC) *userValidator {
 	return &userValidator{
 		UserDB:     udb,
 		hmac:       hmac,
-		emailRegex: regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\]+\.[a-z]{2,16}$`),
+		emailRegex: regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,16}$`),
 	}
 }
 
