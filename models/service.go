@@ -8,10 +8,12 @@ func NewServices(connectionInfo string) (*Services, error) {
 		return nil, err
 	}
 	db.LogMode(true)
-	return &Services{}, nil
+	return &Services{
+		User: NewUserService(db),
+	}, nil
 }
 
 type Services struct {
-	GalleryService GalleryService
-	UserService    UserService
+	Gallery GalleryService
+	User    UserService
 }

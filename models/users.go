@@ -56,18 +56,14 @@ type UserService interface {
 
 // NewUserService is used at the start of the application to open a connection
 // to the database
-func NewUserService(connectionInfo string) (UserService, error) {
-	ug, err := NewUserGorm(connectionInfo)
-	if err != nil {
-		return nil, err
-	}
-
+func NewUserService(db *gorm.DB) UserService {
+	ug := &userGorm{db}
 	hmac := hash.NewHMAC(hmacSecretKey)
 	uv := newUserValidator(ug, hmac)
 
 	return &userService{
 		UserDB: uv,
-	}, nil
+	}
 }
 
 var _ UserService = &userService{}
@@ -368,20 +364,6 @@ func (uv *userValidator) passwordHashRequired(user *User) error {
 	}
 
 	return nil
-}
-
-// NewUserGorm accepts a postgres connection string and returns a new instance
-// of the userGorm Type
-func NewUserGorm(connectionInfo string) (*userGorm, error) {
-	db, err := gorm.Open("postgres", connectionInfo)
-	if err != nil {
-		return nil, err
-	}
-	db.LogMode(true)
-
-	return &userGorm{
-		db: db,
-	}, nil
 }
 
 // Create will create a user in the database and fill the ID, CreatedAt,
