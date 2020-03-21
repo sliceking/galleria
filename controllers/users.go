@@ -86,7 +86,6 @@ func (u *Users) Login(w http.ResponseWriter, r *http.Request) {
 	vd := views.Data{}
 	form := LoginForm{}
 	if err := parseForm(r, &form); err != nil {
-		panic(err)
 		log.Println(err)
 		vd.SetAlert(err)
 		u.LoginView.Render(w, vd)
