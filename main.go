@@ -6,6 +6,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/sliceking/galleria/controllers"
+	"github.com/sliceking/galleria/middleware"
 	"github.com/sliceking/galleria/models"
 )
 
@@ -40,8 +41,9 @@ func main() {
 	r.HandleFunc("/cookietest", usersC.CookieTest).Methods("GET")
 
 	// Gallery Routes
-	r.Handle("/galleries/new", galleriesC.New).Methods("GET")
-	r.HandleFunc("/galleries", galleriesC.Create).Methods("POST")
+	requireUserMW := middleware.RequireUser{services.User}
+	r.Handle("/galleries/new", requireUserMW.Apply(galleriesC.New)).Methods("GET")
+	r.HandleFunc("/galleries", requireUserMW.ApplyFn(galleriesC.Create)).Methods("POST")
 
 	http.ListenAndServe(":3000", r)
 }
