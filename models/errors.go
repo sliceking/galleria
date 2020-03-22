@@ -5,8 +5,8 @@ import "strings"
 const (
 	// ErrNotFound is returned when a resource cannot be found in the database
 	ErrNotFound modelError = "models: resource not found"
-	// ErrIDInvalid is return when an invalid ID is passed to a method like delete
-	ErrIDInvalid modelError = "models: ID was invalid"
+	// ErrTitleRequired is returned if a gallery is created without a title
+	ErrTitleRequired modelError = "models: a title is required"
 	// ErrPasswordIncorrect is returned when an invalid password is used to auth
 	ErrPasswordIncorrect modelError = "models: incorrect password provided"
 	// ErrEmailRequired is returned when an email address is not provided
@@ -23,10 +23,14 @@ const (
 	// ErrPasswordRequired is return when no password is provided
 	ErrPasswordRequired modelError = "models: a password is required"
 	// ErrRememberTooShort is returned if a remember hash is too short
-	ErrRememberTooShort modelError = "models: remember token must be at least 32 bytes"
+	ErrRememberTooShort privateError = "models: remember token must be at least 32 bytes"
 	// ErrRememberRequired is return if a create or update is attempted without
 	// a user remember token hash
-	ErrRememberRequired modelError = "models: remember token is required"
+	ErrRememberRequired privateError = "models: remember token is required"
+	// ErrUserIDRequired is returned if a gallery is created without a user
+	ErrUserIDRequired privateError = "models: a user is required"
+	// ErrIDInvalid is return when an invalid ID is passed to a method like delete
+	ErrIDInvalid privateError = "models: ID provided was invalid"
 )
 
 type modelError string
@@ -40,4 +44,10 @@ func (e modelError) Public() string {
 	split := strings.Split(s, " ")
 	split[0] = strings.Title(split[0])
 	return strings.Join(split, " ")
+}
+
+type privateError string
+
+func (e privateError) Error() string {
+	return string(e)
 }
