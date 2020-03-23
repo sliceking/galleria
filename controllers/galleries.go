@@ -12,11 +12,16 @@ import (
 	"github.com/sliceking/galleria/views"
 )
 
-func NewGalleries(gs models.GalleryService) *Galleries {
+const (
+	ShowGallery = "showGallery"
+)
+
+func NewGalleries(gs models.GalleryService, r *mux.Router) *Galleries {
 	return &Galleries{
 		New:      views.NewView("bootstrap", "galleries/new"),
 		ShowView: views.NewView("bootstrap", "galleries/show"),
 		gs:       gs,
+		r:        r,
 	}
 }
 
@@ -24,6 +29,7 @@ type Galleries struct {
 	New      *views.View
 	ShowView *views.View
 	gs       models.GalleryService
+	r        *mux.Router
 }
 
 type GalleryForm struct {
@@ -67,7 +73,6 @@ func (g *Galleries) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user := context.User(r.Context())
-	fmt.Println("create got the user: ", user.ID)
 	gallery := models.Gallery{
 		Title:  form.Title,
 		UserID: user.ID,
@@ -79,5 +84,10 @@ func (g *Galleries) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Fprintln(w, gallery)
+	url, err := g.r.Get(ShowGallery).URL("id", fmt.Sprintf("%v", gallery.ID))
+	if err != nil {
+		http.Redirect(w, r, "/", http.StatusFound)
+	}
+
+	http.Redirect(w, r, url.Path, http.StatusFound)
 }
