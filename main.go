@@ -44,6 +44,7 @@ func main() {
 	requireUserMW := middleware.RequireUser{services.User}
 	r.Handle("/galleries/new", requireUserMW.Apply(galleriesC.New)).Methods("GET")
 	r.HandleFunc("/galleries", requireUserMW.ApplyFn(galleriesC.Create)).Methods("POST")
+	r.HandleFunc("/galleries/{id:[0-9]+}", galleriesC.Show).Methods("GET")
 
 	http.ListenAndServe(":3000", r)
 }
