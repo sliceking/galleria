@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/sliceking/galleria/context"
 	"github.com/sliceking/galleria/models"
 	"github.com/sliceking/galleria/views"
 )
@@ -38,8 +39,11 @@ func (g *Galleries) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	user := context.User(r.Context())
+	fmt.Println("create got the user: ", user.ID)
 	gallery := models.Gallery{
-		Title: form.Title,
+		Title:  form.Title,
+		UserID: user.ID,
 	}
 
 	if err := g.gs.Create(&gallery); err != nil {
