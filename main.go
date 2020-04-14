@@ -38,10 +38,10 @@ func main() {
 	r.HandleFunc("/signup", usersC.Create).Methods("POST")
 	r.Handle("/login", usersC.LoginView).Methods("GET")
 	r.HandleFunc("/login", usersC.Login).Methods("POST")
-	r.HandleFunc("/cookietest", usersC.CookieTest).Methods("GET")
 
 	// Gallery Routes
-	requireUserMW := middleware.RequireUser{services.User}
+	userMW := middleware.User{UserService: services.User}
+	requireUserMW := middleware.RequireUser{User: userMW}
 	r.Handle("/galleries",
 		requireUserMW.ApplyFn(galleriesC.Index)).Methods("GET")
 	r.Handle("/galleries/new",
@@ -56,7 +56,7 @@ func main() {
 		requireUserMW.ApplyFn(galleriesC.Delete)).Methods("POST")
 	r.HandleFunc("/galleries/{id:[0-9]+}",
 		galleriesC.Show).Methods("GET").Name(controllers.ShowGallery)
-	http.ListenAndServe(":3000", r)
+	http.ListenAndServe(":3000", userMW.Apply(r))
 }
 
 func must(err error) {

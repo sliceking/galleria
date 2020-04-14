@@ -1,5 +1,7 @@
 package views
 
+import "github.com/sliceking/galleria/models"
+
 const (
 	AlertLvlError   = "danger"
 	AlertLvlWarning = "warning"
@@ -19,6 +21,7 @@ type Alert struct {
 // Data is a structure that views expect data to come in
 type Data struct {
 	Alert *Alert
+	User  *models.User
 	Yield interface{}
 }
 
