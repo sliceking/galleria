@@ -197,7 +197,13 @@ func (g *Galleries) Upload(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	fmt.Fprintln(w, "Files successfully uploaded!")
+	url, err := g.r.Get(EditGallery).URL("id", fmt.Sprintf("%v", gallery.ID))
+	if err != nil {
+		http.Redirect(w, r, "/galleries", http.StatusFound)
+		return
+	}
+
+	http.Redirect(w, r, url.Path, http.StatusFound)
 }
 
 // POST /galleries/:id/delete
@@ -247,6 +253,9 @@ func (g *Galleries) galleryById(w http.ResponseWriter, r *http.Request) (*models
 
 		return nil, err
 	}
+
+	images, _ := g.is.ByGalleryID(gallery.ID)
+	gallery.Images = images
 
 	return gallery, nil
 }
