@@ -38,6 +38,7 @@ func (is *imageService) Create(galleryID uint, r io.ReadCloser, filename string)
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -47,6 +48,11 @@ func (is *imageService) ByGalleryID(galleryID uint) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	for i := range strings {
+		strings[i] = "/" + strings[i]
+	}
+
 	return strings, nil
 }
 

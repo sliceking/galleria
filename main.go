@@ -39,6 +39,10 @@ func main() {
 	r.Handle("/login", usersC.LoginView).Methods("GET")
 	r.HandleFunc("/login", usersC.Login).Methods("POST")
 
+	//Image Routes
+	imageHandler := http.FileServer(http.Dir("./images/"))
+	r.PathPrefix("/images/").Handler(http.StripPrefix("/images/", imageHandler))
+
 	// Gallery Routes
 	userMW := middleware.User{UserService: services.User}
 	requireUserMW := middleware.RequireUser{User: userMW}
