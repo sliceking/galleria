@@ -1,6 +1,10 @@
 package views
 
-import "github.com/sliceking/galleria/models"
+import (
+	"log"
+
+	"github.com/sliceking/galleria/models"
+)
 
 const (
 	AlertLvlError   = "danger"
@@ -32,6 +36,7 @@ func (d *Data) SetAlert(err error) {
 			Message: pErr.Public(),
 		}
 	} else {
+		log.Println(err)
 		d.Alert = &Alert{
 			Level:   AlertLvlError,
 			Message: AlertMsgGeneric,
