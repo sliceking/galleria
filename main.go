@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
 	"github.com/sliceking/galleria/controllers"
 	"github.com/sliceking/galleria/middleware"
 	"github.com/sliceking/galleria/models"
+	"github.com/sliceking/galleria/rand"
 )
 
 const (
@@ -43,9 +45,15 @@ func main() {
 	imageHandler := http.FileServer(http.Dir("./images/"))
 	r.PathPrefix("/images/").Handler(http.StripPrefix("/images/", imageHandler))
 
-	// Gallery Routes
+	// Middleware
+	isProd := false
+	b, err := rand.Bytes(32)
+	must(err)
+	csrfMW := csrf.Protect(b, csrf.Secure(isProd))
 	userMW := middleware.User{UserService: services.User}
 	requireUserMW := middleware.RequireUser{User: userMW}
+
+	// Gallery Routes
 	r.Handle("/galleries",
 		requireUserMW.ApplyFn(galleriesC.Index)).Methods("GET")
 	r.Handle("/galleries/new",
@@ -67,7 +75,7 @@ func main() {
 	r.HandleFunc("/galleries/{id:[0-9]+}/images",
 		requireUserMW.ApplyFn(galleriesC.ImageUpload)).Methods("POST")
 
-	http.ListenAndServe(":3000", userMW.Apply(r))
+	http.ListenAndServe(":3000", csrfMW(userMW.Apply(r)))
 }
 
 func must(err error) {
