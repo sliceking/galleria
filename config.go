@@ -37,14 +37,18 @@ func (c PostgresConfig) Dialect() string {
 }
 
 type Config struct {
-	Port int
-	Env  string
+	Port    int    `json:"port"`
+	Env     string `json:"env"`
+	Pepper  string `json:"pepper"`
+	HMACkey string `json:"hmac_key"`
 }
 
 func DefaultConfig() Config {
 	return Config{
-		Port: 3000,
-		Env:  "dev",
+		Port:    3000,
+		Env:     "dev",
+		Pepper:  "IamAsuperSecretString",
+		HMACkey: "secret-hmac-key",
 	}
 }
 

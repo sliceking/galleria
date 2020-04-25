@@ -13,11 +13,16 @@ import (
 )
 
 func main() {
-	dbCfg := DefaultPostgresConfig()
-	services, err := models.NewServices(dbCfg.Dialect(), dbCfg.ConnectionInfo())
-	must(err)
-
 	cfg := DefaultConfig()
+	dbCfg := DefaultPostgresConfig()
+	services, err := models.NewServices(
+		models.WithGorm(dbCfg.Dialect(), dbCfg.ConnectionInfo()),
+		models.WithLogMode(!cfg.IsProd()),
+		models.WithUser(cfg.Pepper, cfg.HMACkey),
+		models.WithGallery(),
+		models.WithImage(),
+	)
+	must(err)
 
 	defer services.Close()
 	services.AutoMigrate()

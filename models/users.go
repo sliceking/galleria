@@ -10,9 +10,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-const userPwPepper = "IamAsuperSecretString"
-const hmacSecretKey = "secret-hmac-key"
-
 // User represents a user in our application
 type User struct {
 	gorm.Model
@@ -48,13 +45,14 @@ type UserService interface {
 
 // NewUserService is used at the start of the application to open a connection
 // to the database
-func NewUserService(db *gorm.DB) UserService {
+func NewUserService(db *gorm.DB, pepper, hmacKey string) UserService {
 	ug := &userGorm{db}
-	hmac := hash.NewHMAC(hmacSecretKey)
-	uv := newUserValidator(ug, hmac)
+	hmac := hash.NewHMAC(hmacKey)
+	uv := newUserValidator(ug, hmac, pepper)
 
 	return &userService{
 		UserDB: uv,
+		pepper: pepper,
 	}
 }
 
@@ -63,6 +61,7 @@ var _ UserService = &userService{}
 // UserService is used to communicate with the db for user data
 type userService struct {
 	UserDB
+	pepper string
 }
 
 // Authenticate can be used to authenticate a user with the provided
@@ -74,7 +73,7 @@ func (us *userService) Authenticate(email, password string) (*User, error) {
 	}
 
 	err = bcrypt.CompareHashAndPassword(
-		[]byte(foundUser.PasswordHash), []byte(password+userPwPepper),
+		[]byte(foundUser.PasswordHash), []byte(password+us.pepper),
 	)
 	if err != nil {
 		switch err {
@@ -106,13 +105,15 @@ type userValidator struct {
 	UserDB
 	hmac       hash.HMAC
 	emailRegex *regexp.Regexp
+	pepper     string
 }
 
-func newUserValidator(udb UserDB, hmac hash.HMAC) *userValidator {
+func newUserValidator(udb UserDB, hmac hash.HMAC, pepper string) *userValidator {
 	return &userValidator{
 		UserDB:     udb,
 		hmac:       hmac,
 		emailRegex: regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,16}$`),
+		pepper:     pepper,
 	}
 }
 
@@ -215,7 +216,7 @@ func (uv *userValidator) bcryptPassword(user *User) error {
 		return nil
 	}
 
-	pwBytes := []byte(user.Password + userPwPepper)
+	pwBytes := []byte(user.Password + uv.pepper)
 	hashedBytes, err := bcrypt.GenerateFromPassword(pwBytes, bcrypt.DefaultCost)
 	if err != nil {
 		return err
