@@ -12,19 +12,12 @@ import (
 	"github.com/sliceking/galleria/rand"
 )
 
-const (
-	host   = "localhost"
-	port   = 5432
-	user   = "stanwielga"
-	dbname = "galleria_dev"
-)
-
 func main() {
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s dbname=%s sslmode=disable",
-		host, port, user, dbname,
-	)
-	services, err := models.NewServices(psqlInfo)
+	dbCfg := DefaultPostgresConfig()
+	services, err := models.NewServices(dbCfg.Dialect(), dbCfg.ConnectionInfo())
 	must(err)
+
+	cfg := DefaultConfig()
 
 	defer services.Close()
 	services.AutoMigrate()
@@ -46,10 +39,9 @@ func main() {
 	r.PathPrefix("/images/").Handler(http.StripPrefix("/images/", imageHandler))
 
 	// Middleware
-	isProd := false
 	b, err := rand.Bytes(32)
 	must(err)
-	csrfMW := csrf.Protect(b, csrf.Secure(isProd))
+	csrfMW := csrf.Protect(b, csrf.Secure(cfg.IsProd()))
 	userMW := middleware.User{UserService: services.User}
 	requireUserMW := middleware.RequireUser{User: userMW}
 
@@ -75,7 +67,7 @@ func main() {
 	r.HandleFunc("/galleries/{id:[0-9]+}/images",
 		requireUserMW.ApplyFn(galleriesC.ImageUpload)).Methods("POST")
 
-	http.ListenAndServe(":3000", csrfMW(userMW.Apply(r)))
+	http.ListenAndServe(fmt.Sprintf(":%d", cfg.Port), csrfMW(userMW.Apply(r)))
 }
 
 func must(err error) {

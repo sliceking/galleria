@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/sliceking/galleria/hash"
 	"github.com/sliceking/galleria/rand"
 	"golang.org/x/crypto/bcrypt"
